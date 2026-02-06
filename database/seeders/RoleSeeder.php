@@ -75,7 +75,14 @@ class RoleSeeder extends Seeder
         ];
 
         foreach ($roles as $rol) {
-            Role::create($rol);
+            Role::updateOrCreate(
+                ['nombre' => $rol['nombre']], // busca por nombre
+                [
+                    'slug' => $rol['slug'],
+                    'descripcion' => $rol['descripcion'],
+                    'permisos' => json_encode($rol['permisos']), // recuerda que permisos suele ser JSON
+                ]
+            );
         }
     }
 }
