@@ -80,17 +80,6 @@
                         Iniciar Sesión
                     </button>
                 </form>
-
-                <!-- Demo Credentials Info -->
-                <div class="mt-6 p-4 bg-blue-50 rounded-lg">
-                    <p class="text-xs font-medium text-blue-900 mb-2">Credenciales de prueba:</p>
-                    <div class="text-xs text-blue-800 space-y-1">
-                        <p><strong>Admin:</strong> admin@campana.com</p>
-                        <p><strong>Coordinador:</strong> coordinador@campana.com</p>
-                        <p><strong>Líder:</strong> lider@campana.com</p>
-                        <p class="mt-2"><em>Contraseña para todos: password</em></p>
-                    </div>
-                </div>
             </div>
 
             <!-- Footer -->
