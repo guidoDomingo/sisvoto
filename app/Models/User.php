@@ -103,6 +103,14 @@ class User extends Authenticatable
      */
     public function tieneRol(string $rol): bool
     {
+        if (!$this->role_id) {
+            return false;
+        }
+        
+        if (!$this->relationLoaded('role')) {
+            $this->load('role');
+        }
+        
         return $this->role && $this->role->slug === $rol;
     }
 
@@ -119,7 +127,7 @@ class User extends Authenticatable
      */
     public function esAdmin(): bool
     {
-        return $this->tieneRol('admin');
+        return $this->tieneRol('admin') || $this->tieneRol('superadmin') || $this->tieneRol('coordinador');
     }
 
     /**
@@ -183,7 +191,7 @@ class User extends Authenticatable
      */
     public function esSuperAdmin(): bool
     {
-        return $this->esAdmin(); // Mantener compatibilidad
+        return $this->tieneRol('superadmin');
     }
 
     /**
@@ -191,7 +199,7 @@ class User extends Authenticatable
      */
     public function esCoordinador(): bool
     {
-        return $this->esAdmin(); // Los admins tienen permisos de coordinador
+        return $this->tieneRol('coordinador');
     }
 
     /**
@@ -199,7 +207,7 @@ class User extends Authenticatable
      */
     public function esVoluntario(): bool
     {
-        return $this->esVeedor(); // Los veedores actúan como voluntarios
+        return $this->tieneRol('voluntario');
     }
 
     /**
@@ -207,6 +215,14 @@ class User extends Authenticatable
      */
     public function tienePermiso(string $permiso): bool
     {
+        if (!$this->role_id) {
+            return false;
+        }
+        
+        if (!$this->relationLoaded('role')) {
+            $this->load('role');
+        }
+        
         return $this->role && $this->role->tienePermiso($permiso);
     }
 }
