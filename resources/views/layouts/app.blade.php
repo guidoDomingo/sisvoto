@@ -196,6 +196,18 @@
 
             <!-- Main Content -->
             <div class="p-4 lg:ml-64">
+                <!-- Debug Info (temporal) -->
+                @if(config('app.debug') && session('debug_user_info'))
+                <div class="mb-4 p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded">
+                    <strong>🐛 DEBUG INFO (solo visible en desarrollo):</strong>
+                    <ul class="mt-2 text-sm">
+                        @foreach(session('debug_user_info') as $key => $value)
+                        <li><strong>{{ $key }}:</strong> {{ is_bool($value) ? ($value ? 'SÍ' : 'NO') : $value }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+                @endif
+                
                 <div class="mt-14">
                     {{ $slot }}
                 </div>
