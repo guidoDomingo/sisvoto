@@ -23,8 +23,8 @@ class VotanteImporter extends Component
     public $importando = false;
 
     protected $rules = [
-        'archivo' => 'required|file|mimes:csv,xlsx,xls,txt|max:10240',
-        'lider_asignado_id' => 'required|exists:lideres,id',
+        'archivo' => 'required|file|mimes:csv,xlsx,xls,txt|max:20480', // Aumentado a 20MB
+        'lider_asignado_id' => 'nullable|exists:lideres,id', // Hacer opcional
     ];
 
     protected $messages = [
