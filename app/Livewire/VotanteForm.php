@@ -137,6 +137,13 @@ class VotanteForm extends Component
         }
     }
 
+    public function forzarActualizacion()
+    {
+        Log::info("Forzando actualización manual del componente");
+        // Este método público puede ser llamado desde JavaScript
+        return;
+    }
+    
     public function buscarVotanteLocal()
     {
         if (empty($this->ci) || strlen($this->ci) < 6) {
@@ -209,7 +216,22 @@ class VotanteForm extends Component
                     }
                 }
                 
-                Log::info("Votante encontrado y componente refrescado para CI: {$this->ci}");
+                Log::info("Datos cargados exitosamente", [
+                    'ci' => $this->ci,
+                    'nombres' => $this->nombres,
+                    'apellidos' => $this->apellidos
+                ]);
+                
+                // Disparar evento con datos para JavaScript
+                $this->dispatch('votante-encontrado-datos', [
+                    'accion' => 'forzar-actualizacion',
+                    'datos' => [
+                        'nombres' => $this->nombres,
+                        'apellidos' => $this->apellidos,
+                        'ci' => $this->ci,
+                        'telefono' => $this->telefono
+                    ]
+                ]);
                 
                 return;
             }

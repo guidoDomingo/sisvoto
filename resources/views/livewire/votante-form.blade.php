@@ -399,6 +399,41 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// SOLUCIÓN AGRESIVA: Listener para forzar actualización cuando se encuentra votante
+document.addEventListener('livewire:initialized', () => {
+    Livewire.on('votante-encontrado-datos', (event) => {
+        console.log('🔄 Votante encontrado, forzando actualización:', event);
+        
+        setTimeout(() => {
+            // Estrategia 1: Llamar método público de Livewire
+            const wireId = document.querySelector('[wire\\:id]')?.getAttribute('wire:id');
+            if (wireId) {
+                const component = Livewire.find(wireId);
+                if (component) {
+                    // Forzar actualización múltiple
+                    component.$refresh();
+                    component.call('forzarActualizacion');
+                    console.log('✅ Componente actualizado forzosamente');
+                }
+            }
+            
+            // Estrategia 2: Actualizar inputs manualmente como respaldo
+            const datos = event[0]?.datos || event.datos;
+            if (datos) {
+                const nombresInput = document.querySelector('input[wire\\:model="nombres"]');
+                const apellidosInput = document.querySelector('input[wire\\:model="apellidos"]');
+                const telefonoInput = document.querySelector('input[wire\\:model="telefono"]');
+                
+                if (nombresInput && datos.nombres) nombresInput.value = datos.nombres;
+                if (apellidosInput && datos.apellidos) apellidosInput.value = datos.apellidos;
+                if (telefonoInput && datos.telefono) telefonoInput.value = datos.telefono;
+                
+                console.log('✅ Inputs actualizados manualmente como respaldo');
+            }
+        }, 100);
+    });
+});
 </script>
 
 @push('styles')
