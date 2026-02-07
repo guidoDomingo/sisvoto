@@ -94,7 +94,7 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-                        <input wire:model.live="telefono" type="text" 
+                        <input wire:model="telefono" type="text" 
                             class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         @error('telefono') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                     </div>
@@ -103,21 +103,21 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Nombres *</label>
-                        <input wire:model.live="nombres" type="text" required 
+                        <input wire:model="nombres" type="text" required 
                             class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         @error('nombres') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Apellidos *</label>
-                        <input wire:model.live="apellidos" type="text" required 
+                        <input wire:model="apellidos" type="text" required 
                             class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         @error('apellidos') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input wire:model.live="email" type="email" 
+                        <input wire:model="email" type="email" 
                             class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         @error('email') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                     </div>
@@ -159,14 +159,14 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de Nacimiento</label>
-                        <input wire:model.live="fecha_nacimiento" type="date"
+                        <input wire:model="fecha_nacimiento" type="date"
                             class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         @error('fecha_nacimiento') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de Afiliación</label>
-                        <input wire:model.live="fecha_afiliacion" type="date"
+                        <input wire:model="fecha_afiliacion" type="date"
                             class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         @error('fecha_afiliacion') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                     </div>
@@ -215,42 +215,42 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="md:col-span-3">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
-                        <input wire:model.live="direccion" type="text" 
+                        <input wire:model="direccion" type="text" 
                             class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         @error('direccion') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Barrio</label>
-                        <input wire:model.live="barrio" type="text" 
+                        <input wire:model="barrio" type="text" 
                             class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         @error('barrio') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Zona</label>
-                        <input wire:model.live="zona" type="text" 
+                        <input wire:model="zona" type="text" 
                             class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         @error('zona') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Distrito</label>
-                        <input wire:model.live="distrito" type="text" 
+                        <input wire:model="distrito" type="text" 
                             class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         @error('distrito') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Latitud</label>
-                        <input wire:model.live="latitud" type="number" step="0.000001" 
+                        <input wire:model="latitud" type="number" step="0.000001" 
                             class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         @error('latitud') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Longitud</label>
-                        <input wire:model.live="longitud" type="number" step="0.000001" 
+                        <input wire:model="longitud" type="number" step="0.000001" 
                             class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         @error('longitud') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                     </div>
@@ -263,7 +263,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Líder Asignado *</label>
-                        <select wire:model.live="lider_asignado_id" required 
+                        <select wire:model="lider_asignado_id" required 
                             class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="">Seleccione un líder</option>
                             @foreach($lideres as $lider)
@@ -275,7 +275,7 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Código de Intención *</label>
-                        <select wire:model.live="codigo_intencion" required 
+                        <select wire:model="codigo_intencion" required 
                             class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="A">A - Voto seguro</option>
                             <option value="B">B - Probable</option>
@@ -288,7 +288,7 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Estado de Contacto *</label>
-                        <select wire:model.live="estado_contacto" required 
+                        <select wire:model="estado_contacto" required 
                             class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="Nuevo">Nuevo</option>
                             <option value="Contactado">Contactado</option>
@@ -301,7 +301,7 @@
 
                     <div>
                         <label class="flex items-center mt-6">
-                            <input wire:model.live="necesita_transporte" type="checkbox" 
+                            <input wire:model="necesita_transporte" type="checkbox" 
                                 class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                             <span class="ml-2 text-sm font-medium text-gray-700">Necesita transporte</span>
                         </label>
@@ -312,7 +312,7 @@
             <!-- Notas -->
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Notas</label>
-                <textarea wire:model.live="notas" rows="3" 
+                <textarea wire:model="notas" rows="3" 
                     class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
                 @error('notas') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
             </div>
@@ -365,10 +365,133 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// SIMPLIFICADO: Con wire:model.live Livewire maneja las actualizaciones automáticamente
+// SOLUCIÓN JAVASCRIPT AGRESIVA: Forzar actualización cuando se encuentra votante
 document.addEventListener('livewire:initialized', () => {
     Livewire.on('votante-encontrado-datos', (event) => {
-        console.log('✅ Votante encontrado, Livewire debería actualizar automáticamente:', event);
+        console.log('🔄 Votante encontrado, forzando actualización:', event);
+        
+        setTimeout(() => {
+            // Estrategia 1: Llamar método público de Livewire
+            const wireId = document.querySelector('[wire\\:id]')?.getAttribute('wire:id');
+            if (wireId) {
+                const component = Livewire.find(wireId);
+                if (component) {
+                    // Forzar actualización múltiple
+                    component.$refresh();
+                    component.call('forzarActualizacion');
+                    console.log('✅ Componente actualizado forzosamente');
+                }
+            }
+            
+            // Estrategia 2: Actualizar TODOS los inputs manualmente como respaldo
+            const datos = event[0]?.datos || event.datos;
+            if (datos) {
+                // Actualizar todos los campos básicos
+                const updateInput = (selector, value) => {
+                    const input = document.querySelector(selector);
+                    if (input && value !== null && value !== undefined) {
+                        input.value = value;
+                        input.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                };
+                
+                // Actualizar select
+                const updateSelect = (selector, value) => {
+                    const select = document.querySelector(selector);
+                    if (select && value !== null && value !== undefined) {
+                        select.value = value;
+                        select.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                };
+
+                // Actualizar checkbox
+                const updateCheckbox = (selector, value) => {
+                    const checkbox = document.querySelector(selector);
+                    if (checkbox && value !== null && value !== undefined) {
+                        checkbox.checked = Boolean(value);
+                        checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                };
+                
+                // Datos personales
+                updateInput('input[wire\\:model="nombres"]', datos.nombres);
+                updateInput('input[wire\\:model="apellidos"]', datos.apellidos);
+                updateInput('input[wire\\:model="telefono"]', datos.telefono);
+                updateInput('input[wire\\:model="email"]', datos.email);
+                updateInput('input[wire\\:model="direccion"]', datos.direccion);
+                updateInput('input[wire\\:model="barrio"]', datos.barrio);
+                updateInput('input[wire\\:model="zona"]', datos.zona);
+                updateInput('input[wire\\:model="latitud"]', datos.latitud);
+                updateInput('input[wire\\:model="longitud"]', datos.longitud);
+                
+                // Datos electorales TSJE
+                updateInput('input[wire\\:model="nro_registro"]', datos.nro_registro);
+                updateInput('input[wire\\:model="codigo_departamento"]', datos.codigo_departamento);
+                updateInput('input[wire\\:model="departamento"]', datos.departamento);
+                updateInput('input[wire\\:model="codigo_distrito"]', datos.codigo_distrito);
+                updateInput('input[wire\\:model="codigo_seccion"]', datos.codigo_seccion);
+                updateInput('input[wire\\:model="seccion"]', datos.seccion);
+                updateInput('input[wire\\:model="codigo_barrio"]', datos.codigo_barrio);
+                updateInput('input[wire\\:model="barrio_tsje"]', datos.barrio_tsje);
+                updateInput('input[wire\\:model="local_votacion"]', datos.local_votacion);
+                updateInput('input[wire\\:model="descripcion_local"]', datos.descripcion_local);
+                updateInput('input[wire\\:model="mesa"]', datos.mesa);
+                updateInput('input[wire\\:model="orden"]', datos.orden);
+                updateInput('input[wire\\:model="fecha_nacimiento"]', datos.fecha_nacimiento);
+                updateInput('input[wire\\:model="fecha_afiliacion"]', datos.fecha_afiliacion);
+                updateInput('input[wire\\:model="distrito"]', datos.distrito);
+
+                // Datos de campaña
+                updateSelect('select[wire\\:model="lider_asignado_id"]', datos.lider_asignado_id);
+                updateSelect('select[wire\\:model="codigo_intencion"]', datos.codigo_intencion);
+                updateSelect('select[wire\\:model="estado_contacto"]', datos.estado_contacto);
+                updateCheckbox('input[wire\\:model="necesita_transporte"]', datos.necesita_transporte);
+                
+                // Notas/textarea
+                const notasTextarea = document.querySelector('textarea[wire\\:model="notas"]');
+                if (notasTextarea && datos.notas) {
+                    notasTextarea.value = datos.notas;
+                    notasTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                
+                console.log('✅ TODOS los inputs actualizados manualmente como respaldo');
+            }
+        }, 100);
+    });
+});
+
+// JavaScript básico - formateo de campos
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-format CI input
+    const ciInput = document.querySelector('input[wire\\:model\\.live\\.debounce\\.500ms="ci"]');
+    if (ciInput) {
+        ciInput.addEventListener('input', function(e) {
+            // Remove non-numeric characters
+            this.value = this.value.replace(/[^0-9]/g, '');
+            
+            // Limit to reasonable CI length
+            if (this.value.length > 15) {
+                this.value = this.value.substring(0, 15);
+            }
+        });
+    }
+
+    // Auto-format phone number
+    const phoneInput = document.querySelector('input[wire\\:model="telefono"]');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            // Remove non-numeric characters except + and spaces
+            this.value = this.value.replace(/[^0-9+\\s]/g, '');
+        });
+    }
+
+    // Auto-capitalize names
+    const nameInputs = document.querySelectorAll('input[wire\\:model="nombres"], input[wire\\:model="apellidos"]');
+    nameInputs.forEach(input => {
+        input.addEventListener('input', function(e) {
+            // Capitalize first letter of each word
+            this.value = this.value.toLowerCase().replace(/\\b\\w/g, l => l.toUpperCase());
+        });
     });
 });
 </script>

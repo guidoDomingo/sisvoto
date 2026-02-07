@@ -139,9 +139,8 @@ class VotanteForm extends Component
 
     public function forzarActualizacion()
     {
-        // Con wire:model.live los campos se actualizan automáticamente
-        // Este método se mantiene por compatibilidad
-        Log::info("Método forzarActualizacion llamado - campos deberían sincronizar automáticamente");
+        Log::info("Forzando actualización manual del componente");
+        // Este método público puede ser llamado desde JavaScript
         return;
     }
     
@@ -223,11 +222,44 @@ class VotanteForm extends Component
                     'apellidos' => $this->apellidos
                 ]);
                 
-                // Con wire:model.live los campos se deberían actualizar automáticamente
-                // Mantener evento por compatibilidad con JavaScript de respaldo
+                // Disparar evento con TODOS los datos para JavaScript
                 $this->dispatch('votante-encontrado-datos', [
-                    'mensaje' => 'Datos cargados exitosamente con Livewire',
-                    'ci' => $this->ci
+                    'accion' => 'forzar-actualizacion',
+                    'datos' => [
+                        // Datos básicos
+                        'nombres' => $this->nombres,
+                        'apellidos' => $this->apellidos,
+                        'ci' => $this->ci,
+                        'telefono' => $this->telefono,
+                        'email' => $this->email,
+                        'direccion' => $this->direccion,
+                        'barrio' => $this->barrio,
+                        'zona' => $this->zona,
+                        'distrito' => $this->distrito,
+                        'latitud' => $this->latitud,
+                        'longitud' => $this->longitud,
+                        // Datos electorales
+                        'nro_registro' => $this->nro_registro,
+                        'codigo_departamento' => $this->codigo_departamento,
+                        'departamento' => $this->departamento,
+                        'codigo_distrito' => $this->codigo_distrito,
+                        'codigo_seccion' => $this->codigo_seccion,
+                        'seccion' => $this->seccion,
+                        'codigo_barrio' => $this->codigo_barrio,
+                        'barrio_tsje' => $this->barrio_tsje,
+                        'local_votacion' => $this->local_votacion,
+                        'descripcion_local' => $this->descripcion_local,
+                        'mesa' => $this->mesa,
+                        'orden' => $this->orden,
+                        'fecha_nacimiento' => $this->fecha_nacimiento,
+                        'fecha_afiliacion' => $this->fecha_afiliacion,
+                        // Datos de campaña
+                        'lider_asignado_id' => $this->lider_asignado_id,
+                        'codigo_intencion' => $this->codigo_intencion,
+                        'estado_contacto' => $this->estado_contacto,
+                        'necesita_transporte' => $this->necesita_transporte,
+                        'notas' => $this->notas
+                    ]
                 ]);
                 
                 return;
