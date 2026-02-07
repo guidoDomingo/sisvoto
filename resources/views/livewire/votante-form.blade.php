@@ -366,25 +366,38 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Listener para actualización forzada cuando se encuentra un votante
-document.addEventListener('livewire:initialized', () => {
-    Livewire.on('votante-encontrado', () => {
-        console.log('Votante encontrado - Forzando actualización del formulario');
-        
-        // Forzar re-renderizado de todos los campos del formulario
-        setTimeout(() => {
-            const form = document.querySelector('form[wire\\:submit="guardar"]');
-            if (form) {
-                // Trigger refresh event para forzar actualización de Livewire
-                const inputs = form.querySelectorAll('input[wire\\:model], select[wire\\:model], textarea[wire\\:model]');
-                inputs.forEach(input => {
-                    input.dispatchEvent(new Event('input', { bubbles: true }));
-                });
-                
-                console.log('Formulario actualizado - ' + inputs.length + ' campos procesados');
-            }
-        }, 150);
-    });
-});
+if (typeof window.votanteFormInitialized === 'undefined') {
+    window.votanteFormInitialized = true;
+    
+    document.addEventListener('livewire:initialized', () => {
+        Livewire.on('votante-encontrado', () => {
+            console.log('Votante encontrado - Forzando actualización del formulario');
+            
+            // Usar requestAnimationFrame para mejor rendimiento
+            requestAnimationFrame(() => {
+                const form = document.querySelector('form[wire\\:submit="guardar"]');
+                if (form) {
+                    // Solo trigger en campos wire:model sin debounce para evitar conflictos
+                    const inputs = form.querySelectorAll(
+                        'input[wire\\:model]:not([wire\\:model*="live"]):not([wire\\:model*="debounce"]), ' +
+                        'select[wire\\:model], ' +
+                        'textarea[wire\\:model]'
+                    );
+                    
+                    inputs.forEach(input => {
+                        // Usar un evento personalizado más específico
+                        input.dispatchEvent(new CustomEvent('livewire:update', { 
+                            bubbles: true,
+                            detail: { synthetic: true }
+                        }));
+                    });
+                    
+                    console.log('Formulario actualizado - ' + inputs.length + ' campos procesados');
+                }
+            });
+        });
+    }, { once: true }); // Asegurar que solo se registre una vez
+}
 </script>
 
 @push('styles')
