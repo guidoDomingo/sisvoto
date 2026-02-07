@@ -227,17 +227,10 @@ class VotanteForm extends Component
                     }
                 }
                 
-                // Forzar actualización del componente Livewire
-                $this->dispatch('votante-encontrado');
+                // Forzar refresh completo del componente - método más efectivo
+                $this->dispatch('$refresh');
                 
-                // Usar skipRender(false) para forzar re-renderizado
-                $this->skipRender = false;
-                
-                Log::info("Datos cargados exitosamente para votante CI: {$this->ci}", [
-                    'nombres_cargado' => $this->nombres,
-                    'apellidos_cargado' => $this->apellidos,
-                    'telefono_cargado' => $this->telefono
-                ]);
+                Log::info("Votante encontrado y componente refrescado para CI: {$this->ci}");
                 
                 return;
             }

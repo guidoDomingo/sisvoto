@@ -365,39 +365,40 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Listener para actualización forzada cuando se encuentra un votante
-if (typeof window.votanteFormInitialized === 'undefined') {
-    window.votanteFormInitialized = true;
-    
-    document.addEventListener('livewire:initialized', () => {
-        Livewire.on('votante-encontrado', () => {
-            console.log('Votante encontrado - Forzando actualización del formulario');
+// JavaScript básico - el $refresh de Livewire maneja la actualización
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-format CI input
+    const ciInput = document.querySelector('input[wire\\:model\\.live\\.debounce\\.500ms="ci"]');
+    if (ciInput) {
+        ciInput.addEventListener('input', function(e) {
+            // Remove non-numeric characters
+            this.value = this.value.replace(/[^0-9]/g, '');
             
-            // Usar requestAnimationFrame para mejor rendimiento
-            requestAnimationFrame(() => {
-                const form = document.querySelector('form[wire\\:submit="guardar"]');
-                if (form) {
-                    // Solo trigger en campos wire:model sin debounce para evitar conflictos
-                    const inputs = form.querySelectorAll(
-                        'input[wire\\:model]:not([wire\\:model*="live"]):not([wire\\:model*="debounce"]), ' +
-                        'select[wire\\:model], ' +
-                        'textarea[wire\\:model]'
-                    );
-                    
-                    inputs.forEach(input => {
-                        // Usar un evento personalizado más específico
-                        input.dispatchEvent(new CustomEvent('livewire:update', { 
-                            bubbles: true,
-                            detail: { synthetic: true }
-                        }));
-                    });
-                    
-                    console.log('Formulario actualizado - ' + inputs.length + ' campos procesados');
-                }
-            });
+            // Limit to reasonable CI length
+            if (this.value.length > 15) {
+                this.value = this.value.substring(0, 15);
+            }
         });
-    }, { once: true }); // Asegurar que solo se registre una vez
-}
+    }
+
+    // Auto-format phone number
+    const phoneInput = document.querySelector('input[wire\\:model="telefono"]');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            // Remove non-numeric characters except + and spaces
+            this.value = this.value.replace(/[^0-9+\s]/g, '');
+        });
+    }
+
+    // Auto-capitalize names
+    const nameInputs = document.querySelectorAll('input[wire\\:model="nombres"], input[wire\\:model="apellidos"]');
+    nameInputs.forEach(input => {
+        input.addEventListener('input', function(e) {
+            // Capitalize first letter of each word
+            this.value = this.value.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+        });
+    });
+});
 </script>
 
 @push('styles')
