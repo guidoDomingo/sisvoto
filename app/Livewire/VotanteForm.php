@@ -112,7 +112,7 @@ class VotanteForm extends Component
         } else {
             // Asignar líder por defecto si el usuario es líder
             $user = Auth::user();
-            if ($user->hasRole('Líder') && $user->lider) {
+            if ($user->esLider() && $user->lider) {
                 $this->lider_asignado_id = $user->lider->id;
             }
         }
@@ -133,7 +133,90 @@ class VotanteForm extends Component
         
         // Búsqueda automática si el CI tiene al menos 6 dígitos y búsqueda automática está habilitada
         if ($this->busquedaAutomatica && strlen($ci) >= 6 && $ci !== $this->ultimaBusqueda) {
-            $this->consultarTSJEAutomatico();
+            $this->buscarVotanteLocal();
+        }
+    }
+
+    public function buscarVotanteLocal()
+    {
+        if (empty($this->ci) || strlen($this->ci) < 6) {
+            return;
+        }
+        
+        $this->ultimaBusqueda = $this->ci;
+        $this->buscandoDatos = true;
+        $this->mensajeBusqueda = '🔍 Buscando en base de datos local...';
+        
+        try {
+            // Buscar votante existente en la base de datos local
+            $votanteExistente = Votante::where('ci', $this->ci)
+                ->where('id', '!=', $this->votanteId) // Excluir el votante actual si estamos editando
+                ->first();
+            
+            if ($votanteExistente) {
+                // Llenar todos los campos con los datos encontrados
+                $this->nombres = $votanteExistente->nombres;
+                $this->apellidos = $votanteExistente->apellidos;
+                $this->telefono = $votanteExistente->telefono;
+                $this->email = $votanteExistente->email;
+                $this->direccion = $votanteExistente->direccion;
+                $this->barrio = $votanteExistente->barrio;
+                $this->zona = $votanteExistente->zona;
+                $this->distrito = $votanteExistente->distrito;
+                $this->latitud = $votanteExistente->latitud;
+                $this->longitud = $votanteExistente->longitud;
+                
+                // Datos electorales TSJE
+                $this->nro_registro = $votanteExistente->nro_registro;
+                $this->codigo_departamento = $votanteExistente->codigo_departamento;
+                $this->departamento = $votanteExistente->departamento;
+                $this->codigo_distrito = $votanteExistente->codigo_distrito;
+                $this->codigo_seccion = $votanteExistente->codigo_seccion;
+                $this->seccion = $votanteExistente->seccion;
+                $this->codigo_barrio = $votanteExistente->codigo_barrio;
+                $this->barrio_tsje = $votanteExistente->barrio_tsje;
+                $this->local_votacion = $votanteExistente->local_votacion;
+                $this->descripcion_local = $votanteExistente->descripcion_local;
+                $this->mesa = $votanteExistente->mesa;
+                $this->orden = $votanteExistente->orden;
+                $this->fecha_nacimiento = $votanteExistente->fecha_nacimiento ? 
+                    $votanteExistente->fecha_nacimiento->format('Y-m-d') : null;
+                $this->fecha_afiliacion = $votanteExistente->fecha_afiliacion ? 
+                    $votanteExistente->fecha_afiliacion->format('Y-m-d') : null;
+                
+                // Datos de campaña - solo si estamos en modo creación
+                if (!$this->votanteId) {
+                    $this->lider_asignado_id = $votanteExistente->lider_asignado_id;
+                    $this->codigo_intencion = $votanteExistente->codigo_intencion;
+                    $this->estado_contacto = $votanteExistente->estado_contacto;
+                    $this->necesita_transporte = $votanteExistente->necesita_transporte;
+                    $this->notas = $votanteExistente->notas;
+                }
+                
+                $this->datosEncontrados = true;
+                $this->buscandoDatos = false;
+                $this->mensajeBusqueda = '✅ Votante encontrado en la base de datos local - Datos cargados automáticamente';
+                
+                // Si no tenemos líder asignado y el usuario es líder, asignar automáticamente
+                if (!$this->lider_asignado_id) {
+                    $user = Auth::user();
+                    if ($user->esLider() && $user->lider) {
+                        $this->lider_asignado_id = $user->lider->id;
+                    }
+                }
+                
+                Log::info("Votante encontrado localmente para CI: {$this->ci}");
+                return;
+            }
+            
+            // Si no encuentra en la base local
+            $this->buscandoDatos = false;
+            $this->mensajeBusqueda = '❌ No se encontró el votante en la base de datos local';
+            
+        } catch (\Exception $e) {
+            Log::error('Error al buscar votante local: ' . $e->getMessage());
+            $this->buscandoDatos = false;
+            $this->mensajeBusqueda = '❌ Error al buscar en la base de datos local';
         }
     }
 
@@ -143,12 +226,22 @@ class VotanteForm extends Component
             return;
         }
         
-        $this->ultimaBusqueda = $this->ci;
         $this->buscandoDatos = true;
-        $this->mensajeBusqueda = '🔍 Buscando datos automáticamente...';
+        $this->mensajeBusqueda = '🔍 No encontrado localmente. Buscando en TSJE...';
         
         // Usar un delay pequeño para evitar múltiples búsquedas
         $this->dispatch('buscar-datos', ci: $this->ci);
+    }
+    
+    public function buscarVotanteManual()
+    {
+        if (empty($this->ci)) {
+            $this->mensajeBusqueda = '⚠️ Ingrese un número de cédula';
+            return;
+        }
+        
+        $this->ultimaBusqueda = $this->ci;
+        $this->buscarVotanteLocal();
     }
     
     public function consultarTSJE()
