@@ -147,6 +147,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Verificar si es operador PC móvil
+     */
+    public function esPcMovil(): bool
+    {
+        return $this->tieneRol('pc_movil') || $this->tieneRol('pc movil');
+    }
+
+    /**
      * Verificar si puede marcar votos
      */
     public function puedeMarcarVotos(): bool

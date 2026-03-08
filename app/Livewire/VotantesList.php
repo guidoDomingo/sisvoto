@@ -94,8 +94,8 @@ class VotantesList extends Component
     {
         $user = Auth::user();
         
-        // Verificar si el usuario tiene permisos (mismos permisos que marcar votos)
-        if (!$user->puedeMarcarVotos()) {
+        // Verificar si el usuario tiene permisos (no debe ser veedor y debe poder usar PC móvil)
+        if (!$user->puedeUsarPcMovil() || $user->esVeedor()) {
             session()->flash('error', 'No tienes permisos para registrar PC móvil.');
             return;
         }
@@ -177,6 +177,8 @@ class VotantesList extends Component
             $query->where('lider_asignado_id', $user->lider->id);
         } elseif ($user->esVeedor()) {
             // Los veedores pueden ver todos
+        } elseif ($user->esPcMovil()) {
+            // Los operadores PC móvil pueden ver todos
         } else {
             $query->whereRaw('1 = 0');
         }
@@ -309,6 +311,9 @@ class VotantesList extends Component
             $query->where('lider_asignado_id', $user->lider->id);
         } elseif ($user->esVeedor()) {
             // Los veedores pueden ver todos los votantes pero no modificarlos
+            // No aplicamos filtro adicional
+        } elseif ($user->esPcMovil()) {
+            // Los operadores PC móvil ven todos los votantes
             // No aplicamos filtro adicional
         } else {
             // Si no tiene ningún rol válido, no puede ver votantes

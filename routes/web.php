@@ -64,8 +64,10 @@ Route::middleware(['auth'])->group(function () {
     // Visitas
     Route::get('/visitas', VisitasList::class)->name('visitas.index');
     
-    // Datos Maestros
-    Route::get('/datos-maestros', DatosMaestros::class)->name('datos-maestros.index');
+    // Datos Maestros (no accesible para veedores)
+    Route::get('/datos-maestros', DatosMaestros::class)
+        ->middleware('admin')
+        ->name('datos-maestros.index');
     
     // Gestión de Usuarios (solo para admin)
     Route::middleware(['admin'])->group(function () {

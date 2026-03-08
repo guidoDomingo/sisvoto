@@ -57,26 +57,9 @@ class Dashboard extends Component
                 ->get();
         } 
         elseif ($user->esLider() && $user->lider) {
-            // Métricas específicas para líderes
+            // Métricas específicas para líderes usando el servicio
             $lider = $user->lider;
-            $votantesAsignados = $lider->votantes();
-            
-            $this->metricas = [
-                'total_votantes' => $votantesAsignados->count(),
-                'ya_votaron' => $votantesAsignados->where('ya_voto', true)->count(),
-                'porcentaje_votacion' => $votantesAsignados->count() > 0 ? 
-                    round(($votantesAsignados->where('ya_voto', true)->count() / $votantesAsignados->count()) * 100, 1) : 0,
-                'necesitan_transporte' => $votantesAsignados->where('necesita_transporte', true)->count(),
-                'contactados' => $votantesAsignados->where('estado_contacto', '!=', 'Nuevo')->count(),
-                'intencion_a_b' => $votantesAsignados->whereIn('codigo_intencion', ['A', 'B'])->count(),
-                'por_intencion' => [
-                    'A' => $votantesAsignados->where('codigo_intencion', 'A')->count(),
-                    'B' => $votantesAsignados->where('codigo_intencion', 'B')->count(),
-                    'C' => $votantesAsignados->where('codigo_intencion', 'C')->count(),
-                    'D' => $votantesAsignados->where('codigo_intencion', 'D')->count(),
-                    'E' => $votantesAsignados->where('codigo_intencion', 'E')->count(),
-                ]
-            ];
+            $this->metricas = $metricsService->getLeaderMetrics($lider->id);
 
             // Predicción para el líder específico
             $this->prediccion = $predictionService->heuristicPredictionForLeader($lider);

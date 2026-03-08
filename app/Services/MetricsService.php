@@ -32,6 +32,33 @@ class MetricsService
             ->pluck('total', 'codigo_intencion')
             ->toArray();
 
+        // Métricas PC Móvil
+        $pasaronPorPc = Votante::where('paso_por_pc_movil', true)->count();
+        $votaronSinPc = Votante::where('ya_voto', true)
+            ->where('paso_por_pc_movil', false)
+            ->count();
+        $votaronconPc = Votante::where('ya_voto', true)
+            ->where('paso_por_pc_movil', true)
+            ->count();
+        $noPasaronPorPc = $totalVotantes - $pasaronPorPc;
+
+        // Votos por líder
+        $votosPorLider = Lider::with('usuario')
+            ->withCount([
+                'votantes as total_votantes',
+                'votantes as votantes_que_votaron' => function($query) {
+                    $query->where('ya_voto', true);
+                },
+                'votantes as votantes_con_pc' => function($query) {
+                    $query->where('paso_por_pc_movil', true);
+                },
+                'votantes as votos_con_pc' => function($query) {
+                    $query->where('ya_voto', true)->where('paso_por_pc_movil', true);
+                }
+            ])
+            ->orderBy('votantes_que_votaron', 'desc')
+            ->get();
+
         $predictionService = new PredictionService();
         $prediccion = $predictionService->heuristicPrediction();
 
@@ -46,6 +73,16 @@ class MetricsService
             'necesitan_transporte' => $necesitanTransporte,
             'por_intencion' => $porIntencion,
             'votos_estimados' => $prediccion['votos_estimados'],
+            
+            // Nuevas métricas PC Móvil
+            'pasaron_por_pc' => $pasaronPorPc,
+            'no_pasaron_por_pc' => $noPasaronPorPc,
+            'porcentaje_pc' => $totalVotantes > 0 ? round(($pasaronPorPc / $totalVotantes) * 100, 2) : 0,
+            'votaron_sin_pc' => $votaronSinPc,
+            'votaron_con_pc' => $votaronconPc,
+            'porcentaje_votos_con_pc' => $yaVotaron > 0 ? round(($votaronconPc / $yaVotaron) * 100, 2) : 0,
+            'eficiencia_pc' => $pasaronPorPc > 0 ? round(($votaronconPc / $pasaronPorPc) * 100, 2) : 0,
+            'votos_por_lider' => $votosPorLider,
         ];
     }
 
@@ -74,6 +111,11 @@ class MetricsService
             ->map(fn($group) => $group->count())
             ->toArray();
 
+        // Métricas PC Móvil para el líder
+        $pasaronPorPc = $votantes->where('paso_por_pc_movil', true)->count();
+        $votaronSinPc = $votantes->where('ya_voto', true)->where('paso_por_pc_movil', false)->count();
+        $votaronconPc = $votantes->where('ya_voto', true)->where('paso_por_pc_movil', true)->count();
+
         $predictionService = new PredictionService();
         $prediccion = $predictionService->heuristicPrediction($votantes);
 
@@ -97,6 +139,15 @@ class MetricsService
             'porcentaje_meta' => $lider->meta_votos > 0
                 ? round(($prediccion['votos_estimados'] / $lider->meta_votos) * 100, 2)
                 : 0,
+            
+            // Nuevas métricas PC Móvil para líderes
+            'pasaron_por_pc' => $pasaronPorPc,
+            'no_pasaron_por_pc' => $totalVotantes - $pasaronPorPc,
+            'porcentaje_pc' => $totalVotantes > 0 ? round(($pasaronPorPc / $totalVotantes) * 100, 2) : 0,
+            'votaron_sin_pc' => $votaronSinPc,
+            'votaron_con_pc' => $votaronconPc,
+            'porcentaje_votos_con_pc' => $yaVotaron > 0 ? round(($votaronconPc / $yaVotaron) * 100, 2) : 0,
+            'eficiencia_pc' => $pasaronPorPc > 0 ? round(($votaronconPc / $pasaronPorPc) * 100, 2) : 0,
         ];
     }
 

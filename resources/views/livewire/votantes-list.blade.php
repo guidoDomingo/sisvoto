@@ -163,12 +163,14 @@
             <div class="flex flex-col sm:flex-row gap-2">
                 <!-- Mobile: Stack buttons vertically -->
                 <div class="grid grid-cols-2 gap-2 sm:hidden">
+                    @if(!auth()->user()->esVeedor())
                     <a href="{{ route('votantes.create') }}" class="inline-flex items-center justify-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm">
                         <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path>
                         </svg>
                         Nuevo
                     </a>
+                    @endif
 
                     <button wire:click="limpiarFiltros" class="inline-flex items-center justify-center px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg text-sm">
                         <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -178,6 +180,7 @@
                     </button>
                 </div>
 
+                @if(!auth()->user()->esVeedor())
                 <div class="sm:hidden">
                     <button wire:click="exportarExcel" 
                             wire:loading.attr="disabled"
@@ -194,15 +197,18 @@
                         <span wire:loading wire:target="exportarExcel">Generando...</span>
                     </button>
                 </div>
+                @endif
 
                 <!-- Desktop buttons -->
                 <div class="hidden sm:flex sm:flex-wrap sm:gap-2">
+                    @if(!auth()->user()->esVeedor())
                     <a href="{{ route('votantes.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg">
                         <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path>
                         </svg>
                         Nuevo Votante
                     </a>
+                    @endif
                 
                     <button wire:click="limpiarFiltros" class="inline-flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg">
                         <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -211,6 +217,7 @@
                         Limpiar
                     </button>
 
+                    @if(!auth()->user()->esVeedor())
                     <button wire:click="exportarExcel" 
                             wire:loading.attr="disabled"
                             wire:target="exportarExcel"
@@ -225,6 +232,7 @@
                         <span wire:loading.remove wire:target="exportarExcel">📊 Exportar Excel</span>
                         <span wire:loading wire:target="exportarExcel">Generando...</span>
                     </button>
+                    @endif
                 </div>
             </div>
             
@@ -401,7 +409,7 @@
                                         </button>
                                     @endif
 
-                                    @if(auth()->user()->puedeUsarPcMovil())
+                                    @if(auth()->user()->puedeUsarPcMovil() && !auth()->user()->esVeedor())
                                         <button wire:click="marcarPcMovil({{ $votante->id }})" 
                                                 wire:confirm="¿Cambiar el estado de PC móvil para este votante?"
                                                 class="text-blue-600 hover:text-blue-900" 
@@ -412,7 +420,7 @@
                                         </button>
                                     @endif
                                     
-                                    @if(auth()->user()->puedeCrearVotantes() || auth()->user()->esAdmin())
+                                    @if((auth()->user()->puedeCrearVotantes() || auth()->user()->esAdmin()) && !auth()->user()->esVeedor())
                                         <a href="{{ route('votantes.edit', $votante->id) }}" class="text-purple-600 hover:text-purple-900" title="Editar">
                                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                                 <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
@@ -641,8 +649,8 @@
 
                     <!-- Botones de Acción Mejorados -->
                     <div class="mt-4 border-t pt-3 space-y-2">
-                        <!-- Botón PC Móvil (para usuarios con permisos PC móvil) -->
-                        @if(auth()->user()->puedeUsarPcMovil())
+                        <!-- Botón PC Móvil (para usuarios con permisos PC móvil, excepto veedores) -->
+                        @if(auth()->user()->puedeUsarPcMovil() && !auth()->user()->esVeedor())
                             <button wire:click="marcarPcMovil({{ $votante->id }})" 
                                     wire:confirm="¿Cambiar el estado de PC móvil para este votante?"
                                     class="w-full px-4 py-3 text-sm font-bold rounded-lg transition-all
@@ -669,8 +677,8 @@
                             </button>
                         @endif
                         
-                        <!-- Botón Editar -->
-                        @if(auth()->user()->puedeCrearVotantes() || auth()->user()->esAdmin())
+                        <!-- Botón Editar (no para veedores) -->
+                        @if((auth()->user()->puedeCrearVotantes() || auth()->user()->esAdmin()) && !auth()->user()->esVeedor())
                             <a href="{{ route('votantes.edit', $votante->id) }}" 
                                class="block w-full px-4 py-2 text-white text-center rounded-lg transition-all text-sm font-medium hover:bg-purple-700"
                                style="background-color: #7c3aed !important;">
@@ -814,7 +822,7 @@
                                 </button>
                             @endif
                             
-                            @if(auth()->user()->puedeCrearVotantes() || auth()->user()->esAdmin())
+                            @if((auth()->user()->puedeCrearVotantes() || auth()->user()->esAdmin()) && !auth()->user()->esVeedor())
                                 <a href="{{ route('votantes.edit', $votante->id) }}" 
                                    class="px-2 py-1 bg-purple-500 text-white rounded text-xs hover:bg-purple-600 font-medium transition-colors"
                                    title="Editar votante">

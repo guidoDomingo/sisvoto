@@ -169,6 +169,7 @@
                         </li>
                         @endif
 
+                        @if(!auth()->user()->esVeedor())
                         <li>
                             <a href="{{ route('datos-maestros.index') }}" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 {{ request()->routeIs('datos-maestros.*') ? 'bg-blue-50 text-blue-600' : '' }}">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -177,8 +178,9 @@
                                 <span class="ml-3">Datos Maestros</span>
                             </a>
                         </li>
+                        @endif
 
-                        @if(Auth::user()->esAdmin())
+                        @if(Auth::user()->esAdmin() || Auth::user()->esPcMovil())
                         <li>
                             <a href="{{ route('usuarios.index') }}" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 {{ request()->routeIs('usuarios.*') ? 'bg-blue-50 text-blue-600' : '' }}">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">

@@ -51,7 +51,12 @@ class UserManagement extends Component
             $rules['ci'] = 'nullable|string|max:20|unique:users,ci,' . $this->userId;
             $rules['password'] = ['nullable', 'confirmed', Password::defaults()];
         } else {
-            $rules['password'] = ['required', 'confirmed', Password::defaults()];
+            // Solo requerir contraseña si NO es rol líder
+            if (!$this->es_rol_lider) {
+                $rules['password'] = ['required', 'confirmed', Password::defaults()];
+            } else {
+                $rules['password'] = ['nullable', 'confirmed', Password::defaults()];
+            }
         }
 
         return $rules;
@@ -71,10 +76,18 @@ class UserManagement extends Component
 
     public function mount()
     {
-        // Verificar que solo los admin puedan acceder
-        if (!Auth::user()->esAdmin()) {
+        // Verificar que solo los admin y PC móvil puedan acceder
+        if (!Auth::user()->esAdmin() && !Auth::user()->esPcMovil()) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
+    }
+
+    public function getEsRolLiderProperty()
+    {
+        if (!$this->role_id) return false;
+        
+        $role = Role::find($this->role_id);
+        return $role && $role->slug === 'lider';
     }
 
     public function updatingSearch()
@@ -152,10 +165,19 @@ class UserManagement extends Component
 
                 session()->flash('message', 'Usuario actualizado exitosamente.');
             } else {
+                // Solo generar contraseña automática para rol líder
+                $password = $this->password;
+                
+                if ($this->es_rol_lider && empty($password)) {
+                    // Generar contraseña automática: nombre + CI (últimos 4 dígitos)
+                    $ciSuffix = $this->ci ? substr($this->ci, -4) : '1234';
+                    $password = strtolower(str_replace(' ', '', $this->name)) . $ciSuffix;
+                }
+                
                 $user = User::create([
                     'name' => $this->name,
                     'email' => $this->email,
-                    'password' => Hash::make($this->password),
+                    'password' => Hash::make($password),
                     'role_id' => $this->role_id,
                     'telefono' => $this->telefono,
                     'ci' => $this->ci,
@@ -173,8 +195,12 @@ class UserManagement extends Component
                     ]);
                 }
 
-                session()->flash('message', 'Usuario creado exitosamente.' . 
-                    ($role && $role->slug === 'lider' ? ' Se creó automáticamente el perfil de líder.' : ''));
+                $mensajeExtra = '';
+                if ($role && $role->slug === 'lider') {
+                    $mensajeExtra = ' Se creó automáticamente el perfil de líder y contraseña.';
+                }
+
+                session()->flash('message', 'Usuario creado exitosamente.' . $mensajeExtra);
             }
 
             $this->cerrarModal();

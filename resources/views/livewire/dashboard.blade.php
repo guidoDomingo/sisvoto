@@ -103,7 +103,7 @@
     </div>
 
     <!-- Charts Row -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <!-- Intención de Voto -->
         <div class="bg-white rounded-lg shadow p-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Intención de Voto</h3>
@@ -126,8 +126,54 @@
             </div>
         </div>
 
-        <!-- Líderes Top -->
-        @if(count($lideresTop ?? []) > 0)
+        <!-- Rendimiento de Líderes -->
+        @if(isset($metricas['votos_por_lider']))
+        <div class="bg-white rounded-lg shadow p-6 lg:col-span-2">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Rendimiento por Líder</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">Líder</th>
+                            <th class="text-right text-xs font-medium text-gray-500 uppercase tracking-wider py-2">Votantes</th>
+                            <th class="text-right text-xs font-medium text-gray-500 uppercase tracking-wider py-2">Votaron</th>
+                            <th class="text-right text-xs font-medium text-gray-500 uppercase tracking-wider py-2">% Votos</th>
+                            <th class="text-right text-xs font-medium text-gray-500 uppercase tracking-wider py-2">Con PC</th>
+                            <th class="text-right text-xs font-medium text-gray-500 uppercase tracking-wider py-2">Efic. PC</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        @foreach(($metricas['votos_por_lider']->take(8) ?? []) as $lider)
+                        <tr>
+                            <td class="py-2 pr-3">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium text-sm mr-2">
+                                        {{ strtoupper(substr($lider->usuario->name, 0, 1)) }}
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-900 truncate max-w-32">
+                                        {{ $lider->usuario->name }}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-right py-2 text-sm text-gray-900">{{ $lider->total_votantes }}</td>
+                            <td class="text-right py-2 text-sm font-semibold text-green-600">{{ $lider->votantes_que_votaron }}</td>
+                            <td class="text-right py-2 text-sm text-gray-600">
+                                {{ $lider->total_votantes > 0 ? number_format(($lider->votantes_que_votaron / $lider->total_votantes) * 100, 1) : 0 }}%
+                            </td>
+                            <td class="text-right py-2 text-sm text-blue-600">{{ $lider->votos_con_pc }}</td>
+                            <td class="text-right py-2 text-sm text-indigo-600">
+                                {{ $lider->votantes_con_pc > 0 ? number_format(($lider->votos_con_pc / $lider->votantes_con_pc) * 100, 0) : 0 }}%
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        @endif
+
+        <!-- Líderes Top (si no hay datos de PC móvil) -->
+        @if(count($lideresTop ?? []) > 0 && !isset($metricas['votos_por_lider']))
         <div class="bg-white rounded-lg shadow p-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Líderes Top</h3>
             <div class="space-y-3">
