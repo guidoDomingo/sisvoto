@@ -39,7 +39,6 @@ class Dashboard extends Component
             $this->lideresTop = Lider::withCount('votantes')
                 ->with('usuario')
                 ->orderBy('votantes_count', 'desc')
-                ->take(5)
                 ->get();
 
             // Gastos recientes

@@ -130,9 +130,9 @@
         @if(isset($metricas['votos_por_lider']))
         <div class="bg-white rounded-lg shadow p-6 lg:col-span-2">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Rendimiento por Líder</h3>
-            <div class="overflow-x-auto">
+            <div class="overflow-auto max-h-[36rem]">
                 <table class="min-w-full">
-                    <thead>
+                    <thead class="sticky top-0 bg-white">
                         <tr class="border-b border-gray-200">
                             <th class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">Líder</th>
                             <th class="text-right text-xs font-medium text-gray-500 uppercase tracking-wider py-2">Votantes</th>
@@ -143,7 +143,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
-                        @foreach(($metricas['votos_por_lider']->take(8) ?? []) as $lider)
+                        @foreach($metricas['votos_por_lider'] as $lider)
                         <tr>
                             <td class="py-2 pr-3">
                                 <div class="flex items-center">
