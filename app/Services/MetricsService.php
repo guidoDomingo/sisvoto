@@ -20,16 +20,36 @@ class MetricsService
     public function getGeneralMetrics(): array
     {
         $totalVotantes = Votante::count();
+        $liderReserva = Lider::whereHas('usuario', function ($query) {
+            $query->where('email', 'lider@lider.com');
+        })->first();
+        $liderReservaId = $liderReserva?->id;
+        $votosSegurosPorAsignar = $liderReserva
+            ? $liderReserva->votantes()->count()
+            : 0;
+
         $yaVotaron = Votante::where('ya_voto', true)->count();
         $necesitanTransporte = Votante::where('necesita_transporte', true)
             ->where('ya_voto', false)
             ->count();
 
         $contactados = Votante::has('contactos')->count();
-        $totalLideres = Lider::count();
-        $lideresConVotantes = Lider::has('votantes')->count();
-        $votantesConLider = Votante::whereNotNull('lider_asignado_id')->count();
-        $votantesSinLider = $totalVotantes - $votantesConLider;
+        $totalLideres = Lider::when(
+            $liderReservaId,
+            fn ($query) => $query->whereKeyNot($liderReservaId)
+        )->count();
+        $lideresConVotantes = Lider::has('votantes')
+            ->when(
+                $liderReservaId,
+                fn ($query) => $query->whereKeyNot($liderReservaId)
+            )
+            ->count();
+        $votantesAsignadosLideres = Votante::whereNotNull('lider_asignado_id')
+            ->when(
+                $liderReservaId,
+                fn ($query) => $query->where('lider_asignado_id', '!=', $liderReservaId)
+            )
+            ->count();
         $votantesConMesa = Votante::whereNotNull('mesa')
             ->where('mesa', '!=', '')
             ->count();
@@ -60,6 +80,10 @@ class MetricsService
 
         // Votos por líder
         $votosPorLider = Lider::with('usuario')
+            ->when(
+                $liderReservaId,
+                fn ($query) => $query->whereKeyNot($liderReservaId)
+            )
             ->withCount([
                 'votantes as total_votantes',
                 'votantes as votantes_que_votaron' => function($query) {
@@ -99,8 +123,9 @@ class MetricsService
             'total_lideres' => $totalLideres,
             'lideres_con_votantes' => $lideresConVotantes,
             'lideres_sin_votantes' => $totalLideres - $lideresConVotantes,
-            'votantes_con_lider' => $votantesConLider,
-            'votantes_sin_lider' => $votantesSinLider,
+            'votantes_con_lider' => $votantesAsignadosLideres,
+            'votantes_sin_lider' => $totalVotantes - $votantesAsignadosLideres,
+            'votos_seguros_por_asignar' => $votosSegurosPorAsignar,
             'votantes_con_mesa' => $votantesConMesa,
             'votantes_sin_mesa' => $totalVotantes - $votantesConMesa,
             'total_mesas' => $totalMesas,

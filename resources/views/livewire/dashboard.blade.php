@@ -107,7 +107,7 @@
         @php
             $resumenOperativo = [
                 ['label' => 'Lideres', 'value' => $metricas['total_lideres'] ?? 0, 'color' => 'text-indigo-600'],
-                ['label' => 'Con lider', 'value' => $metricas['votantes_con_lider'] ?? 0, 'color' => 'text-blue-600'],
+                ['label' => 'Asignados a lideres', 'value' => $metricas['votantes_con_lider'] ?? 0, 'color' => 'text-blue-600'],
                 ['label' => 'Pasaron PC', 'value' => $metricas['pasaron_por_pc'] ?? 0, 'color' => 'text-cyan-600'],
                 ['label' => 'No pasaron PC', 'value' => $metricas['no_pasaron_por_pc'] ?? 0, 'color' => 'text-gray-700'],
                 ['label' => 'Pendientes', 'value' => $metricas['pendientes_votar'] ?? 0, 'color' => 'text-orange-600'],
@@ -187,6 +187,18 @@
 
     <!-- Charts Row -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div class="lg:col-span-3 rounded-lg border border-amber-200 bg-amber-50 px-6 py-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h3 class="font-semibold text-amber-900">Votos seguros por asignar</h3>
+                <p class="text-sm text-amber-700">
+                    Reserva de Eduardo Pattender. No participa en el rendimiento de líderes.
+                </p>
+            </div>
+            <div class="text-3xl font-bold text-amber-900">
+                {{ number_format($metricas['votos_seguros_por_asignar'] ?? 0, 0, ',', '.') }}
+            </div>
+        </div>
+
         <!-- Intención de Voto -->
         <div class="bg-white rounded-lg shadow p-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Intención de Voto</h3>
