@@ -26,6 +26,22 @@ class MetricsService
             ->count();
 
         $contactados = Votante::has('contactos')->count();
+        $totalLideres = Lider::count();
+        $lideresConVotantes = Lider::has('votantes')->count();
+        $votantesConLider = Votante::whereNotNull('lider_asignado_id')->count();
+        $votantesSinLider = $totalVotantes - $votantesConLider;
+        $votantesConMesa = Votante::whereNotNull('mesa')
+            ->where('mesa', '!=', '')
+            ->count();
+        $totalMesas = Votante::whereNotNull('mesa')
+            ->where('mesa', '!=', '')
+            ->distinct()
+            ->count('mesa');
+
+        $porEstadoContacto = Votante::select('estado_contacto', DB::raw('count(*) as total'))
+            ->groupBy('estado_contacto')
+            ->pluck('total', 'estado_contacto')
+            ->toArray();
         
         $porIntencion = Votante::select('codigo_intencion', DB::raw('count(*) as total'))
             ->groupBy('codigo_intencion')
@@ -54,9 +70,15 @@ class MetricsService
                 },
                 'votantes as votos_con_pc' => function($query) {
                     $query->where('ya_voto', true)->where('paso_por_pc_movil', true);
+                },
+                'votantes as necesitan_transporte' => function($query) {
+                    $query->where('necesita_transporte', true)->where('ya_voto', false);
+                },
+                'votantes as contactados' => function($query) {
+                    $query->whereHas('contactos');
                 }
             ])
-            ->orderBy('votantes_que_votaron', 'desc')
+            ->orderBy('total_votantes', 'desc')
             ->get();
 
         $predictionService = new PredictionService();
@@ -72,7 +94,16 @@ class MetricsService
             'porcentaje_contactados' => $totalVotantes > 0 ? round(($contactados / $totalVotantes) * 100, 2) : 0,
             'necesitan_transporte' => $necesitanTransporte,
             'por_intencion' => $porIntencion,
+            'por_estado_contacto' => $porEstadoContacto,
             'votos_estimados' => $prediccion['votos_estimados'],
+            'total_lideres' => $totalLideres,
+            'lideres_con_votantes' => $lideresConVotantes,
+            'lideres_sin_votantes' => $totalLideres - $lideresConVotantes,
+            'votantes_con_lider' => $votantesConLider,
+            'votantes_sin_lider' => $votantesSinLider,
+            'votantes_con_mesa' => $votantesConMesa,
+            'votantes_sin_mesa' => $totalVotantes - $votantesConMesa,
+            'total_mesas' => $totalMesas,
             
             // Nuevas métricas PC Móvil
             'pasaron_por_pc' => $pasaronPorPc,

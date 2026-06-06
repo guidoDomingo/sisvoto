@@ -102,6 +102,89 @@
         </div>
     </div>
 
+    <!-- Resumen operativo -->
+    <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-4 mb-6">
+        @php
+            $resumenOperativo = [
+                ['label' => 'Lideres', 'value' => $metricas['total_lideres'] ?? 0, 'color' => 'text-indigo-600'],
+                ['label' => 'Con lider', 'value' => $metricas['votantes_con_lider'] ?? 0, 'color' => 'text-blue-600'],
+                ['label' => 'Pasaron PC', 'value' => $metricas['pasaron_por_pc'] ?? 0, 'color' => 'text-cyan-600'],
+                ['label' => 'No pasaron PC', 'value' => $metricas['no_pasaron_por_pc'] ?? 0, 'color' => 'text-gray-700'],
+                ['label' => 'Pendientes', 'value' => $metricas['pendientes_votar'] ?? 0, 'color' => 'text-orange-600'],
+                ['label' => 'Transporte', 'value' => $metricas['necesitan_transporte'] ?? 0, 'color' => 'text-red-600'],
+                ['label' => 'Con mesa', 'value' => $metricas['votantes_con_mesa'] ?? 0, 'color' => 'text-emerald-600'],
+                ['label' => 'Mesas distintas', 'value' => $metricas['total_mesas'] ?? 0, 'color' => 'text-purple-600'],
+            ];
+        @endphp
+        @foreach($resumenOperativo as $dato)
+            <div class="bg-white rounded-lg shadow p-4">
+                <div class="text-xs font-medium text-gray-500 uppercase tracking-wide">{{ $dato['label'] }}</div>
+                <div class="mt-1 text-2xl font-bold {{ $dato['color'] }}">
+                    {{ number_format($dato['value'], 0, ',', '.') }}
+                </div>
+            </div>
+        @endforeach
+    </div>
+
+    <!-- PC movil y estado de contacto -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Operacion PC Movil</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="rounded-lg bg-cyan-50 p-4">
+                    <div class="text-sm text-cyan-700">Total pasaron por PC</div>
+                    <div class="text-3xl font-bold text-cyan-900">{{ number_format($metricas['pasaron_por_pc'] ?? 0, 0, ',', '.') }}</div>
+                    <div class="text-xs text-cyan-700">{{ number_format($metricas['porcentaje_pc'] ?? 0, 1) }}% del padron</div>
+                </div>
+                <div class="rounded-lg bg-green-50 p-4">
+                    <div class="text-sm text-green-700">Votaron con PC</div>
+                    <div class="text-3xl font-bold text-green-900">{{ number_format($metricas['votaron_con_pc'] ?? 0, 0, ',', '.') }}</div>
+                    <div class="text-xs text-green-700">{{ number_format($metricas['eficiencia_pc'] ?? 0, 1) }}% de quienes pasaron</div>
+                </div>
+                <div class="rounded-lg bg-blue-50 p-4">
+                    <div class="text-sm text-blue-700">Votaron sin PC</div>
+                    <div class="text-3xl font-bold text-blue-900">{{ number_format($metricas['votaron_sin_pc'] ?? 0, 0, ',', '.') }}</div>
+                </div>
+                <div class="rounded-lg bg-gray-50 p-4">
+                    <div class="text-sm text-gray-600">No pasaron por PC</div>
+                    <div class="text-3xl font-bold text-gray-900">{{ number_format($metricas['no_pasaron_por_pc'] ?? 0, 0, ',', '.') }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Estado de Contacto</h3>
+            <div class="space-y-3">
+                @forelse(($metricas['por_estado_contacto'] ?? []) as $estado => $cantidad)
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="font-medium text-gray-700">{{ $estado }}</span>
+                            <span class="text-gray-600">
+                                {{ number_format($cantidad, 0, ',', '.') }}
+                                ({{ ($metricas['total_votantes'] ?? 0) > 0 ? number_format(($cantidad / $metricas['total_votantes']) * 100, 1) : 0 }}%)
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-500 h-2 rounded-full" style="width: {{ ($metricas['total_votantes'] ?? 0) > 0 ? ($cantidad / $metricas['total_votantes']) * 100 : 0 }}%"></div>
+                        </div>
+                    </div>
+                @empty
+                    <p class="text-sm text-gray-500">No hay datos de contacto.</p>
+                @endforelse
+            </div>
+            <div class="grid grid-cols-2 gap-4 mt-5 pt-4 border-t border-gray-200">
+                <div>
+                    <div class="text-xs text-gray-500">Contactados efectivamente</div>
+                    <div class="text-xl font-semibold text-gray-900">{{ number_format($metricas['contactados'] ?? 0, 0, ',', '.') }}</div>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-500">Sin contacto registrado</div>
+                    <div class="text-xl font-semibold text-gray-900">{{ number_format($metricas['no_contactados'] ?? 0, 0, ',', '.') }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Charts Row -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <!-- Intención de Voto -->
@@ -128,45 +211,73 @@
 
         <!-- Rendimiento de Líderes -->
         @if(isset($metricas['votos_por_lider']))
-        <div class="bg-white rounded-lg shadow p-6 lg:col-span-2">
+        <div class="bg-white rounded-lg shadow p-6 lg:col-span-3">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Rendimiento por Líder</h3>
             <div class="overflow-auto max-h-[36rem]">
-                <table class="min-w-full">
+                <table class="w-full min-w-[1300px]">
                     <thead class="sticky top-0 bg-white">
                         <tr class="border-b border-gray-200">
-                            <th class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">Líder</th>
-                            <th class="text-right text-xs font-medium text-gray-500 uppercase tracking-wider py-2">Votantes</th>
-                            <th class="text-right text-xs font-medium text-gray-500 uppercase tracking-wider py-2">Votaron</th>
-                            <th class="text-right text-xs font-medium text-gray-500 uppercase tracking-wider py-2">% Votos</th>
-                            <th class="text-right text-xs font-medium text-gray-500 uppercase tracking-wider py-2">Con PC</th>
-                            <th class="text-right text-xs font-medium text-gray-500 uppercase tracking-wider py-2">Efic. PC</th>
+                            <th class="w-64 text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 whitespace-nowrap">Líder</th>
+                            <th class="text-right text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 whitespace-nowrap">Votantes</th>
+                            <th class="text-right text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 whitespace-nowrap">Contactados</th>
+                            <th class="text-right text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 whitespace-nowrap">Votaron</th>
+                            <th class="text-right text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 whitespace-nowrap">Pendientes</th>
+                            <th class="text-right text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 whitespace-nowrap">% Votos</th>
+                            <th class="text-right text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 whitespace-nowrap">Pasaron PC</th>
+                            <th class="text-right text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 whitespace-nowrap">Votaron con PC</th>
+                            <th class="text-right text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 whitespace-nowrap">Efic. PC</th>
+                            <th class="text-right text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 whitespace-nowrap">Transporte</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         @foreach($metricas['votos_por_lider'] as $lider)
                         <tr>
-                            <td class="py-2 pr-3">
+                            <td class="px-3 py-2">
                                 <div class="flex items-center">
                                     <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium text-sm mr-2">
                                         {{ strtoupper(substr($lider->usuario->name, 0, 1)) }}
                                     </div>
-                                    <div class="text-sm font-medium text-gray-900 truncate max-w-32">
+                                    <div class="text-sm font-medium text-gray-900 whitespace-nowrap">
                                         {{ $lider->usuario->name }}
                                     </div>
                                 </div>
                             </td>
-                            <td class="text-right py-2 text-sm text-gray-900">{{ $lider->total_votantes }}</td>
-                            <td class="text-right py-2 text-sm font-semibold text-green-600">{{ $lider->votantes_que_votaron }}</td>
-                            <td class="text-right py-2 text-sm text-gray-600">
+                            <td class="text-right px-3 py-2 text-sm text-gray-900">{{ $lider->total_votantes }}</td>
+                            <td class="text-right px-3 py-2 text-sm text-gray-600">{{ $lider->contactados }}</td>
+                            <td class="text-right px-3 py-2 text-sm font-semibold text-green-600">{{ $lider->votantes_que_votaron }}</td>
+                            <td class="text-right px-3 py-2 text-sm text-orange-600">{{ $lider->total_votantes - $lider->votantes_que_votaron }}</td>
+                            <td class="text-right px-3 py-2 text-sm text-gray-600">
                                 {{ $lider->total_votantes > 0 ? number_format(($lider->votantes_que_votaron / $lider->total_votantes) * 100, 1) : 0 }}%
                             </td>
-                            <td class="text-right py-2 text-sm text-blue-600">{{ $lider->votos_con_pc }}</td>
-                            <td class="text-right py-2 text-sm text-indigo-600">
+                            <td class="text-right px-3 py-2 text-sm text-blue-600">{{ $lider->votantes_con_pc }}</td>
+                            <td class="text-right px-3 py-2 text-sm text-green-600">{{ $lider->votos_con_pc }}</td>
+                            <td class="text-right px-3 py-2 text-sm text-indigo-600">
                                 {{ $lider->votantes_con_pc > 0 ? number_format(($lider->votos_con_pc / $lider->votantes_con_pc) * 100, 0) : 0 }}%
                             </td>
+                            <td class="text-right px-3 py-2 text-sm text-red-600">{{ $lider->necesitan_transporte }}</td>
                         </tr>
                         @endforeach
                     </tbody>
+                    <tfoot class="sticky bottom-0 bg-gray-100 border-t-2 border-gray-300">
+                        <tr class="font-semibold text-gray-900">
+                            <td class="py-3 pr-3">Totales ({{ $metricas['votos_por_lider']->count() }} líderes)</td>
+                            <td class="text-right py-3">{{ $metricas['votos_por_lider']->sum('total_votantes') }}</td>
+                            <td class="text-right py-3">{{ $metricas['votos_por_lider']->sum('contactados') }}</td>
+                            <td class="text-right py-3 text-green-700">{{ $metricas['votos_por_lider']->sum('votantes_que_votaron') }}</td>
+                            <td class="text-right py-3 text-orange-700">
+                                {{ $metricas['votos_por_lider']->sum('total_votantes') - $metricas['votos_por_lider']->sum('votantes_que_votaron') }}
+                            </td>
+                            <td class="text-right py-3">
+                                {{ $metricas['votos_por_lider']->sum('total_votantes') > 0 ? number_format(($metricas['votos_por_lider']->sum('votantes_que_votaron') / $metricas['votos_por_lider']->sum('total_votantes')) * 100, 1) : 0 }}%
+                            </td>
+                            <td class="text-right py-3 text-blue-700">{{ $metricas['votos_por_lider']->sum('votantes_con_pc') }}</td>
+                            <td class="text-right py-3 text-green-700">{{ $metricas['votos_por_lider']->sum('votos_con_pc') }}</td>
+                            <td class="text-right py-3 text-indigo-700">
+                                {{ $metricas['votos_por_lider']->sum('votantes_con_pc') > 0 ? number_format(($metricas['votos_por_lider']->sum('votos_con_pc') / $metricas['votos_por_lider']->sum('votantes_con_pc')) * 100, 0) : 0 }}%
+                            </td>
+                            <td class="text-right py-3 text-red-700">{{ $metricas['votos_por_lider']->sum('necesitan_transporte') }}</td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
