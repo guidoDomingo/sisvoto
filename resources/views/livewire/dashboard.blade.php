@@ -187,28 +187,6 @@
 
     <!-- Charts Row -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <!-- Intención de Voto -->
-        <div class="bg-white rounded-lg shadow p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Intención de Voto</h3>
-            <div class="space-y-3">
-                @php
-                    $colores = ['A' => 'bg-green-500', 'B' => 'bg-blue-500', 'C' => 'bg-yellow-500', 'D' => 'bg-orange-500', 'E' => 'bg-red-500'];
-                    $total = array_sum($metricas['por_intencion'] ?? []);
-                @endphp
-                @foreach(($metricas['por_intencion'] ?? []) as $codigo => $cantidad)
-                    <div>
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="text-sm font-medium text-gray-700">{{ $codigo }}</span>
-                            <span class="text-sm text-gray-600">{{ $cantidad }} ({{ $total > 0 ? number_format(($cantidad / $total) * 100, 1) : 0 }}%)</span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div class="{{ $colores[$codigo] }} h-2 rounded-full" style="width: {{ $total > 0 ? ($cantidad / $total) * 100 : 0 }}%"></div>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-
         <!-- Rendimiento de Líderes -->
         @if(isset($metricas['votos_por_lider']))
         <div class="bg-white rounded-lg shadow p-6 lg:col-span-3">
