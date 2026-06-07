@@ -21,12 +21,15 @@ class MetricsService
     {
         $totalVotantes = Votante::count();
         $liderReserva = Lider::whereHas('usuario', function ($query) {
-            $query->where('email', 'lider@lider.com');
+            $query->where('email', 'votos-seguros@punteros.local');
         })->first();
-        $liderReservaId = $liderReserva?->id;
         $votosSegurosPorAsignar = $liderReserva
             ? $liderReserva->votantes()->count()
             : 0;
+        $liderGenerico = Lider::whereHas('usuario', function ($query) {
+            $query->where('email', 'lider@lider.com');
+        })->first();
+        $liderGenericoId = $liderGenerico?->id;
 
         $yaVotaron = Votante::where('ya_voto', true)->count();
         $necesitanTransporte = Votante::where('necesita_transporte', true)
@@ -34,20 +37,22 @@ class MetricsService
             ->count();
 
         $contactados = Votante::has('contactos')->count();
-        $totalLideres = Lider::when(
-            $liderReservaId,
-            fn ($query) => $query->whereKeyNot($liderReservaId)
-        )->count();
+        $totalLideres = Lider::has('votantes')
+            ->when(
+                $liderGenericoId,
+                fn ($query) => $query->whereKeyNot($liderGenericoId)
+            )
+            ->count();
         $lideresConVotantes = Lider::has('votantes')
             ->when(
-                $liderReservaId,
-                fn ($query) => $query->whereKeyNot($liderReservaId)
+                $liderGenericoId,
+                fn ($query) => $query->whereKeyNot($liderGenericoId)
             )
             ->count();
         $votantesAsignadosLideres = Votante::whereNotNull('lider_asignado_id')
             ->when(
-                $liderReservaId,
-                fn ($query) => $query->where('lider_asignado_id', '!=', $liderReservaId)
+                $liderGenericoId,
+                fn ($query) => $query->where('lider_asignado_id', '!=', $liderGenericoId)
             )
             ->count();
         $votantesConMesa = Votante::whereNotNull('mesa')
@@ -80,9 +85,10 @@ class MetricsService
 
         // Votos por líder
         $votosPorLider = Lider::with('usuario')
+            ->has('votantes')
             ->when(
-                $liderReservaId,
-                fn ($query) => $query->whereKeyNot($liderReservaId)
+                $liderGenericoId,
+                fn ($query) => $query->whereKeyNot($liderGenericoId)
             )
             ->withCount([
                 'votantes as total_votantes',

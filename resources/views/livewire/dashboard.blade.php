@@ -187,18 +187,6 @@
 
     <!-- Charts Row -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div class="lg:col-span-3 rounded-lg border border-amber-200 bg-amber-50 px-6 py-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-                <h3 class="font-semibold text-amber-900">Votos seguros por asignar</h3>
-                <p class="text-sm text-amber-700">
-                    Reserva de Eduardo Pattender. No participa en el rendimiento de líderes.
-                </p>
-            </div>
-            <div class="text-3xl font-bold text-amber-900">
-                {{ number_format($metricas['votos_seguros_por_asignar'] ?? 0, 0, ',', '.') }}
-            </div>
-        </div>
-
         <!-- Intención de Voto -->
         <div class="bg-white rounded-lg shadow p-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Intención de Voto</h3>

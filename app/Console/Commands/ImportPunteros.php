@@ -14,6 +14,8 @@ use Throwable;
 
 class ImportPunteros extends Command
 {
+    private const RESERVE_EMAIL = 'votos-seguros@punteros.local';
+
     protected $signature = 'punteros:importar
         {archivo=punteros.xlsx : Ruta del archivo XLSX}
         {--dry-run : Analizar el archivo sin modificar la base de datos}';
@@ -84,7 +86,8 @@ class ImportPunteros extends Command
      *     leaders: array<string, array{name: string, voters: array<string, array<string, mixed>>}>,
      *     duplicate_rows: int,
      *     conflicts: array<int, array<string, string>>,
-     *     missing_ci: array<int, array<string, string|int>>
+     *     missing_ci: array<int, array<string, string|int>>,
+     *     skipped_sheets: array<int, string>
      * }
      */
     private function readWorkbook(string $path): array
@@ -95,12 +98,30 @@ class ImportPunteros extends Command
         $duplicateRows = 0;
         $conflicts = [];
         $missingCi = [];
+        $skippedSheets = [];
+        $worksheets = iterator_to_array($spreadsheet->getWorksheetIterator());
 
-        foreach ($spreadsheet->getWorksheetIterator() as $sheet) {
-            $leaderName = $this->cleanText(
-                (string) $sheet->getCell('C1')->getFormattedValue()
-            ) ?: $this->cleanText($sheet->getTitle());
-            $leaderKey = $this->normalizeName($leaderName);
+        usort($worksheets, function ($left, $right) {
+            return (int) $this->isReserveSheet($right->getTitle())
+                <=> (int) $this->isReserveSheet($left->getTitle());
+        });
+
+        foreach ($worksheets as $sheet) {
+            $columns = $this->detectColumns($sheet);
+
+            if ($columns === null) {
+                $skippedSheets[] = $sheet->getTitle();
+
+                continue;
+            }
+
+            $isReserve = $this->isReserveSheet($sheet->getTitle());
+            $leaderName = $isReserve
+                ? 'VOTOS SEGUROS'
+                : $this->cleanText($sheet->getTitle());
+            $leaderKey = $isReserve
+                ? '__votos_seguros__'
+                : $this->normalizeLeaderKey($leaderName);
 
             if ($leaderKey === '') {
                 continue;
@@ -108,22 +129,25 @@ class ImportPunteros extends Command
 
             $leaders[$leaderKey] ??= [
                 'name' => $leaderName,
+                'is_reserve' => $isReserve,
                 'voters' => [],
             ];
 
-            for ($row = 3; $row <= $sheet->getHighestDataRow(); $row++) {
+            for ($row = $columns['header_row'] + 1; $row <= $sheet->getHighestDataRow(); $row++) {
                 $ci = $this->normalizeCi(
-                    (string) $sheet->getCell("B{$row}")->getFormattedValue()
+                    (string) $sheet->getCell([$columns['ci'], $row])->getFormattedValue()
                 );
                 $lastNames = $this->cleanText(
-                    (string) $sheet->getCell("C{$row}")->getFormattedValue()
+                    (string) $sheet->getCell([$columns['last_names'], $row])->getFormattedValue()
                 );
                 $names = $this->cleanText(
-                    (string) $sheet->getCell("D{$row}")->getFormattedValue()
+                    (string) $sheet->getCell([$columns['names'], $row])->getFormattedValue()
                 );
-                $table = $this->cleanText(
-                    (string) $sheet->getCell("E{$row}")->getFormattedValue()
-                );
+                $table = isset($columns['table'])
+                    ? $this->normalizeTable(
+                        (string) $sheet->getCell([$columns['table'], $row])->getFormattedValue()
+                    )
+                    : null;
 
                 if ($ci === '' && $lastNames === '' && $names === '') {
                     continue;
@@ -158,7 +182,7 @@ class ImportPunteros extends Command
                     'ci' => $ci,
                     'nombres' => $names,
                     'apellidos' => $lastNames,
-                    'mesa' => $table !== '' ? $table : null,
+                    'mesa' => $table,
                 ];
 
                 $leaders[$leaderKey]['voters'][$ci] = $voter;
@@ -174,6 +198,7 @@ class ImportPunteros extends Command
             'duplicate_rows' => $duplicateRows,
             'conflicts' => $conflicts,
             'missing_ci' => $missingCi,
+            'skipped_sheets' => $skippedSheets,
         ];
     }
 
@@ -190,7 +215,7 @@ class ImportPunteros extends Command
         $existingLeaderUsers = User::where('role_id', $leaderRole->id)
             ->with('lider')
             ->get()
-            ->keyBy(fn (User $user) => $this->normalizeName($user->name));
+            ->keyBy(fn (User $user) => $this->normalizeLeaderKey($user->name));
 
         $result = [
             'leaders_created' => 0,
@@ -201,8 +226,26 @@ class ImportPunteros extends Command
         ];
 
         foreach ($data['leaders'] as $leaderKey => $leaderData) {
-            /** @var User|null $user */
-            $user = $existingLeaderUsers->get($leaderKey);
+            if ($leaderData['is_reserve']) {
+                $user = User::firstOrCreate(
+                    ['email' => self::RESERVE_EMAIL],
+                    [
+                        'name' => 'VOTOS SEGUROS',
+                        'password' => Str::random(40),
+                        'role_id' => $leaderRole->id,
+                        'activo' => true,
+                        'email_verified_at' => now(),
+                    ]
+                );
+                $user->load('lider');
+
+                if ($user->wasRecentlyCreated) {
+                    $result['leaders_created']++;
+                }
+            } else {
+                /** @var User|null $user */
+                $user = $existingLeaderUsers->get($leaderKey);
+            }
 
             if (! $user) {
                 $user = User::create([
@@ -214,7 +257,7 @@ class ImportPunteros extends Command
                     'email_verified_at' => now(),
                 ]);
                 $result['leaders_created']++;
-            } else {
+            } elseif (! $leaderData['is_reserve']) {
                 $result['leaders_existing']++;
             }
 
@@ -223,7 +266,9 @@ class ImportPunteros extends Command
             if (! $leader) {
                 $leader = Lider::create([
                     'usuario_id' => $user->id,
-                    'territorio' => 'Puntero: '.$leaderData['name'],
+                    'territorio' => $leaderData['is_reserve']
+                        ? 'Votos seguros pendientes de asignacion'
+                        : 'Puntero: '.$leaderData['name'],
                     'meta_votos' => count($leaderData['voters']),
                     'activo' => true,
                 ]);
@@ -272,15 +317,20 @@ class ImportPunteros extends Command
             fn (array $leader) => count($leader['voters']),
             $data['leaders']
         ));
+        $reserveCount = collect($data['leaders'])
+            ->firstWhere('is_reserve', true)['voters'] ?? [];
 
         $this->table(
             ['Dato del archivo', 'Cantidad'],
             [
                 ['Lideres unicos', count($data['leaders'])],
                 ['Votantes con cedula unica', $voterCount],
+                ['Votos seguros', count($reserveCount)],
+                ['Votantes asignados a lideres', $voterCount - count($reserveCount)],
                 ['Filas duplicadas', $data['duplicate_rows']],
                 ['Conflictos entre lideres', count($data['conflicts'])],
                 ['Filas omitidas sin cedula', count($data['missing_ci'])],
+                ['Hojas no electorales omitidas', count($data['skipped_sheets'])],
             ]
         );
 
@@ -296,6 +346,10 @@ class ImportPunteros extends Command
                 "Sin cedula: {$missing['sheet']}, fila {$missing['row']} ({$missing['name']})."
             );
         }
+
+        foreach ($data['skipped_sheets'] as $sheet) {
+            $this->warn("Hoja omitida por no tener formato de votantes: {$sheet}.");
+        }
     }
 
     /**
@@ -306,24 +360,34 @@ class ImportPunteros extends Command
         $leaderRole = Role::where('slug', 'lider')->first();
         $existingNames = $leaderRole
             ? User::where('role_id', $leaderRole->id)->pluck('name')
-                ->map(fn (string $name) => $this->normalizeName($name))
+                ->map(fn (string $name) => $this->normalizeLeaderKey($name))
                 ->flip()
             : collect();
         $cis = collect($data['leaders'])
             ->flatMap(fn (array $leader) => array_keys($leader['voters']))
             ->values();
         $existingVoters = Votante::withTrashed()->whereIn('ci', $cis)->count();
-        $existingLeaders = collect(array_keys($data['leaders']))
+        $regularLeaders = collect($data['leaders'])
+            ->reject(fn (array $leader) => $leader['is_reserve']);
+        $hasReserveSheet = collect($data['leaders'])
+            ->contains(fn (array $leader) => $leader['is_reserve']);
+        $reserveExists = User::where('email', self::RESERVE_EMAIL)->exists();
+        $existingLeaders = $regularLeaders
+            ->keys()
             ->filter(fn (string $key) => $existingNames->has($key))
             ->count();
+        $leadersToCreate = $regularLeaders->count() - $existingLeaders
+            + ($hasReserveSheet && ! $reserveExists ? 1 : 0);
+        $leadersToReuse = $existingLeaders
+            + ($hasReserveSheet && $reserveExists ? 1 : 0);
 
         $this->newLine();
         $this->info('Simulacion: no se modifico la base de datos.');
         $this->table(
             ['Accion prevista', 'Cantidad'],
             [
-                ['Crear lideres', count($data['leaders']) - $existingLeaders],
-                ['Reutilizar lideres', $existingLeaders],
+                ['Crear lideres', $leadersToCreate],
+                ['Reutilizar lideres', $leadersToReuse],
                 ['Crear votantes', $cis->count() - $existingVoters],
                 ['Actualizar/reasignar votantes', $existingVoters],
             ]
@@ -349,11 +413,75 @@ class ImportPunteros extends Command
         return Str::lower(Str::ascii($this->cleanText($value)));
     }
 
+    private function normalizeLeaderKey(string $value): string
+    {
+        $key = $this->normalizeName($value);
+
+        return match ($key) {
+            'isa meza' => 'ysa meza',
+            default => $key,
+        };
+    }
+
+    private function isReserveSheet(string $title): bool
+    {
+        return $this->normalizeName($title) === 'votos seguros';
+    }
+
+    /**
+     * @return array{header_row: int, ci: int, last_names: int, names: int, table?: int}|null
+     */
+    private function detectColumns($sheet): ?array
+    {
+        $maxRow = min(10, $sheet->getHighestDataRow());
+        $maxColumn = min(
+            10,
+            \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString(
+                $sheet->getHighestDataColumn()
+            )
+        );
+
+        for ($row = 1; $row <= $maxRow; $row++) {
+            $columns = ['header_row' => $row];
+
+            for ($column = 1; $column <= $maxColumn; $column++) {
+                $header = $this->normalizeName(
+                    (string) $sheet->getCell([$column, $row])->getFormattedValue()
+                );
+
+                if (in_array($header, ['cedula', 'ci', 'numero ced', 'numero cedula'], true)) {
+                    $columns['ci'] = $column;
+                } elseif (in_array($header, ['apellido', 'apellidos'], true)) {
+                    $columns['last_names'] = $column;
+                } elseif (in_array($header, ['nombre', 'nombres'], true)) {
+                    $columns['names'] = $column;
+                } elseif (str_contains($header, 'mesa')) {
+                    $columns['table'] = $column;
+                }
+            }
+
+            if (isset($columns['ci'], $columns['last_names'], $columns['names'])) {
+                return $columns;
+            }
+        }
+
+        return null;
+    }
+
     private function normalizeCi(string $value): string
     {
         $digits = preg_replace('/\D+/', '', $value) ?? '';
 
         return ltrim($digits, '0') ?: ($digits === '' ? '' : '0');
+    }
+
+    private function normalizeTable(string $value): ?string
+    {
+        $value = $this->cleanText($value);
+
+        return preg_match('/^\d{1,10}$/', $value) === 1
+            ? $value
+            : null;
     }
 
     private function cleanText(string $value): string
