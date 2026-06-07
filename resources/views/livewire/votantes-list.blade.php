@@ -111,7 +111,7 @@
             </div>
 
             <!-- Segunda fila de filtros para desktop (TSJE y adicionales) -->
-            <div class="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <div class="hidden sm:grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
                 <!-- Distrito -->
                 <select wire:model.live="filtroDistrito" class="border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     <option value="">Todos los distritos</option>
@@ -128,15 +128,27 @@
                     @endforeach
                 </select>
 
+                <!-- Mesa -->
+                <select wire:model.live="filtroMesa" class="border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="">Todas las mesas</option>
+                    @foreach($mesas as $mesa)
+                        <option value="{{ $mesa }}">Mesa {{ $mesa }}</option>
+                    @endforeach
+                </select>
+
+                <!-- Asignación de líder -->
+                <select wire:model.live="filtroAsignacionLider" class="border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="">Cualquier asignación</option>
+                    <option value="con_lider">Con líder asignado</option>
+                    <option value="sin_lider">Sin líder asignado</option>
+                </select>
+
                 <!-- PC Móvil -->
                 <select wire:model.live="filtroPcMovil" class="border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     <option value="">Todos (PC Móvil)</option>
                     <option value="paso">Pasó por PC Móvil</option>
                     <option value="no_paso">No pasó por PC Móvil</option>
                 </select>
-
-                <!-- Espacio para futuro filtro -->
-                <div></div>
             </div>
 
             <!-- Mobile additional filters -->
@@ -153,6 +165,19 @@
                     @foreach($lideres as $lider)
                         <option value="{{ $lider->id }}">{{ $lider->usuario->name }}</option>
                     @endforeach
+                </select>
+
+                <select wire:model.live="filtroMesa" class="border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                    <option value="">Mesas</option>
+                    @foreach($mesas as $mesa)
+                        <option value="{{ $mesa }}">Mesa {{ $mesa }}</option>
+                    @endforeach
+                </select>
+
+                <select wire:model.live="filtroAsignacionLider" class="border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                    <option value="">Asignación</option>
+                    <option value="con_lider">Con líder</option>
+                    <option value="sin_lider">Sin líder</option>
                 </select>
             </div>
         </div>

@@ -26,6 +26,8 @@ class VotantesList extends Component
     public $filtroPcMovil = '';
     public $filtroLider = '';
     public $filtroDistrito = '';
+    public $filtroMesa = '';
+    public $filtroAsignacionLider = '';
     public $sortBy = 'created_at';
     public $sortDir = 'desc';
     public $perPage = 50;
@@ -37,6 +39,8 @@ class VotantesList extends Component
         'search' => ['except' => ''],
         'filtroIntencion' => ['except' => ''],
         'filtroEstado' => ['except' => ''],
+        'filtroMesa' => ['except' => ''],
+        'filtroAsignacionLider' => ['except' => ''],
     ];
 
     public function updatingSearch()
@@ -47,6 +51,13 @@ class VotantesList extends Component
     public function updatingPerPage()
     {
         $this->resetPage();
+    }
+
+    public function updated($property)
+    {
+        if (str_starts_with($property, 'filtro')) {
+            $this->resetPage();
+        }
     }
 
     public function sortBy($field)
@@ -61,7 +72,18 @@ class VotantesList extends Component
 
     public function limpiarFiltros()
     {
-        $this->reset(['search', 'filtroIntencion', 'filtroEstado', 'filtroEstadoVoto', 'filtroTransporte', 'filtroPcMovil', 'filtroLider', 'filtroDistrito']);
+        $this->reset([
+            'search',
+            'filtroIntencion',
+            'filtroEstado',
+            'filtroEstadoVoto',
+            'filtroTransporte',
+            'filtroPcMovil',
+            'filtroLider',
+            'filtroDistrito',
+            'filtroMesa',
+            'filtroAsignacionLider',
+        ]);
         $this->resetPage();
     }
 
@@ -225,8 +247,18 @@ class VotantesList extends Component
             $query->where('lider_asignado_id', $this->filtroLider);
         }
 
+        if ($this->filtroAsignacionLider === 'con_lider') {
+            $query->whereNotNull('lider_asignado_id');
+        } elseif ($this->filtroAsignacionLider === 'sin_lider') {
+            $query->whereNull('lider_asignado_id');
+        }
+
         if ($this->filtroDistrito) {
             $query->where('distrito', 'like', '%' . $this->filtroDistrito . '%');
+        }
+
+        if ($this->filtroMesa !== '') {
+            $query->where('mesa', $this->filtroMesa);
         }
 
         // Ordenamiento
@@ -363,8 +395,18 @@ class VotantesList extends Component
             $query->where('lider_asignado_id', $this->filtroLider);
         }
 
+        if ($this->filtroAsignacionLider === 'con_lider') {
+            $query->whereNotNull('lider_asignado_id');
+        } elseif ($this->filtroAsignacionLider === 'sin_lider') {
+            $query->whereNull('lider_asignado_id');
+        }
+
         if ($this->filtroDistrito) {
             $query->where('distrito', 'like', '%' . $this->filtroDistrito . '%');
+        }
+
+        if ($this->filtroMesa !== '') {
+            $query->where('mesa', $this->filtroMesa);
         }
 
         // Ordenamiento
@@ -395,10 +437,18 @@ class VotantesList extends Component
                             ->sort()
                             ->values();
 
+        $mesas = Votante::whereNotNull('mesa')
+            ->where('mesa', '!=', '')
+            ->distinct()
+            ->pluck('mesa')
+            ->sort(fn ($a, $b) => strnatcasecmp((string) $a, (string) $b))
+            ->values();
+
         return view('livewire.votantes-list', [
             'votantes' => $votantes,
             'lideres' => $lideres,
             'distritos' => $distritos,
+            'mesas' => $mesas,
         ])->layout('layouts.app');
     }
 }
