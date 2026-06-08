@@ -60,6 +60,13 @@ class VotantesList extends Component
         }
     }
 
+    public function updatedFiltroMesa($value)
+    {
+        if ($value !== '') {
+            $this->filtroAsignacionLider = 'con_lider';
+        }
+    }
+
     public function sortBy($field)
     {
         if ($this->sortBy === $field) {
@@ -247,10 +254,12 @@ class VotantesList extends Component
             $query->where('lider_asignado_id', $this->filtroLider);
         }
 
-        if ($this->filtroAsignacionLider === 'con_lider') {
-            $query->whereNotNull('lider_asignado_id');
-        } elseif ($this->filtroAsignacionLider === 'sin_lider') {
-            $query->whereNull('lider_asignado_id');
+        if ($this->filtroMesa === '') {
+            if ($this->filtroAsignacionLider === 'con_lider') {
+                $query->whereNotNull('lider_asignado_id');
+            } elseif ($this->filtroAsignacionLider === 'sin_lider') {
+                $query->whereNull('lider_asignado_id');
+            }
         }
 
         if ($this->filtroDistrito) {
@@ -258,7 +267,8 @@ class VotantesList extends Component
         }
 
         if ($this->filtroMesa !== '') {
-            $query->where('mesa', $this->filtroMesa);
+            $query->where('mesa', $this->filtroMesa)
+                ->whereNotNull('lider_asignado_id');
         }
 
         // Ordenamiento
@@ -395,10 +405,12 @@ class VotantesList extends Component
             $query->where('lider_asignado_id', $this->filtroLider);
         }
 
-        if ($this->filtroAsignacionLider === 'con_lider') {
-            $query->whereNotNull('lider_asignado_id');
-        } elseif ($this->filtroAsignacionLider === 'sin_lider') {
-            $query->whereNull('lider_asignado_id');
+        if ($this->filtroMesa === '') {
+            if ($this->filtroAsignacionLider === 'con_lider') {
+                $query->whereNotNull('lider_asignado_id');
+            } elseif ($this->filtroAsignacionLider === 'sin_lider') {
+                $query->whereNull('lider_asignado_id');
+            }
         }
 
         if ($this->filtroDistrito) {
@@ -406,7 +418,8 @@ class VotantesList extends Component
         }
 
         if ($this->filtroMesa !== '') {
-            $query->where('mesa', $this->filtroMesa);
+            $query->where('mesa', $this->filtroMesa)
+                ->whereNotNull('lider_asignado_id');
         }
 
         // Ordenamiento
